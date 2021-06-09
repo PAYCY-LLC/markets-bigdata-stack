@@ -45,8 +45,8 @@ services:
     environment:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: "jdbc:postgresql://hive-metastore/metastore"
       SERVICE_PRECONDITION: "hive-metastore:9083"
-      HDFS_CONF_fs_s3_access_key: ${S3_ACCESS_KEY}
-      HDFS_CONF_fs_s3_secret_key: ${S3_SECRET_KEY}
+      HDFS_CONF_fs_s3a_access_key: ${S3_ACCESS_KEY}
+      HDFS_CONF_fs_s3a_secret_key: ${S3_SECRET_KEY}
     ports:
       - "10000:10000"
       - "10002:10002"
