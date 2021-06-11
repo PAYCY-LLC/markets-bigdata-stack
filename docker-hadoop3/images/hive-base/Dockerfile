@@ -68,11 +68,12 @@ RUN curl -fSL https://archive.apache.org/dist/hive/hive-$HIVE_VERSION/apache-hiv
 COPY --from=tez-builder /tmp/tez/*.jar $TEZ_LIB_DIR/
 
 RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-s3/${AWS_VERSION}/aws-java-sdk-s3-${AWS_VERSION}.jar -o /opt/hive/lib/aws-java-sdk-s3.jar && \
-    curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-s3/${AWS_VERSION}/aws-java-sdk-s3-${AWS_VERSION}.jar -o /opt/hive/lib/aws-java-sdk.jar && \
+    curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk/${AWS_VERSION}/aws-java-sdk-${AWS_VERSION}.jar -o /opt/hive/lib/aws-java-sdk.jar && \
     curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/${AWS_VERSION}/aws-java-sdk-core-${AWS_VERSION}.jar -o /opt/hive/lib/aws-java-sdk-core.jar && \
     curl -L https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${HADOOP_VERSION}/hadoop-aws-${HADOOP_VERSION}.jar -o /opt/hive/lib/hadoop-aws.jar
 
 RUN cp $HADOOP_HOME/share/hadoop/tools/lib/*aws*.jar $HADOOP_HOME/share/hadoop/common/lib/
+
 
 # Custom configuration goes here
 ADD conf/hive-site.xml $HIVE_CONF_DIR
