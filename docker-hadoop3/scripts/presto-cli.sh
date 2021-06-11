@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "${0%/*}"
 
-PRESTO_VERSION=0.240
+PRESTO_VERSION=0.254.1
 if [ ! -e ./bin/presto-cli.jar ]; then
      curl -L https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/$PRESTO_VERSION/presto-cli-$PRESTO_VERSION-executable.jar -o ./bin/presto-cli.jar
 fi

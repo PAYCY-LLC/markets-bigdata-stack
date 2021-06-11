@@ -18,7 +18,6 @@ CREATE EXTERNAL TABLE IF NOT EXISTS blocks (
     `timestamp` BIGINT,
     transaction_count BIGINT
 )
-PARTITIONED BY (`date` STRING)
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
 WITH SERDEPROPERTIES (
     'serialization.format' = ',',
