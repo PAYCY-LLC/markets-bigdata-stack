@@ -81,11 +81,11 @@ services:
       networks:
           - base_net
 
-    # --------- Presto -----------------
-    presto-coordinator:
-        container_name: prestodb
+    # --------- Trino -----------------
+    trino-coordinator:
+        container_name: trino-coordinator
         build:
-          context: './images/prestodb/'
+          context: './images/trino/'
           dockerfile: 'Dockerfile'
         restart: always
         ports:
@@ -94,25 +94,39 @@ services:
             S3_ACCESS_KEY: ${S3_ACCESS_KEY}
             S3_SECRET_KEY: ${S3_SECRET_KEY}
         volumes:
-            - ./config/presto:/opt/presto/etc
+            - ./config/trino/coordinator:/opt/trino/etc
         networks:
             - base_net
 
-    # #  ------- Minio ----------------
-    # minio:
-    #     container_name: minio
-    #     image: minio/minio
+    # trino-worker:
+    #     container_name: trino-worker
+    #     build:
+    #       context: './images/trino/'
+    #       dockerfile: 'Dockerfile'
     #     restart: always
-    #     ports:
-    #         - '9000:9000'
     #     environment:
-    #       MINIO_ACCESS_KEY: ${S3_ACCESS_KEY}
-    #       MINIO_SECRET_KEY: ${S3_SECRET_KEY}
+    #         S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+    #         S3_SECRET_KEY: ${S3_SECRET_KEY}
     #     volumes:
-    #         - minio:/data
-    #     command: server /data
+    #         - ./config/trino/worker:/opt/trino/etc
     #     networks:
     #         - base_net
+
+    #  ------- Minio ----------------
+    minio:
+        container_name: minio
+        image: minio/minio
+        restart: always
+        ports:
+            - '9000:9000'
+        environment:
+          MINIO_ACCESS_KEY: ${S3_ACCESS_KEY}
+          MINIO_SECRET_KEY: ${S3_SECRET_KEY}
+        volumes:
+            - minio:/data
+        command: server /data
+        networks:
+            - base_net
 
 networks:
     base_net:
