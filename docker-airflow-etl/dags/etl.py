@@ -12,6 +12,7 @@ ENV_S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 ENV_S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 ENV_S3_REGION = os.getenv("S3_REGION")
 ENV_NODE_ETHEREUM = os.getenv("NODE_ETHEREUM")
+ENV_DATADIR_EXTERNAL = os.getenv("DATADIR_EXTERNAL")
 
 default_args = {
     'owner': 'airflow',
@@ -46,10 +47,11 @@ with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *",
 
     t2 = DockerOperator(
         task_id='docker_command',
-        image='ethereum-etl:latest',
+        image='blockchainetl/ethereum-etl:latest',
         api_version='auto',
         auto_remove=True,
-        command="export_all -s 0 -e  200 -p %s.".format(ENV_NODE_ETHEREUM),
+        volumes = ['%s/etl:/ethereum-etl/output'.format(ENV_DATADIR_EXTERNAL), "/var/run/docker.sock:/var/run/docker.sock"],
+        command = "/bin/sleep 25",
         docker_url="unix://var/run/docker.sock",
         network_mode="bridge"
     )
@@ -59,3 +61,6 @@ with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *",
         bash_command='echo "hello world"'
     )
     t1 >> t2 >> t3
+
+
+#         command = "export_all -s 0 -e  200 -p %s.".format(ENV_DATADIR_EXTERNAL, ENV_NODE_ETHEREUM),
