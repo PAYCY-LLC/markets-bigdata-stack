@@ -2,17 +2,16 @@ from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 from airflow.operators.docker_operator import DockerOperator
-from airflow.operators.python_operator import PythonOperator
-from airflow.models import Variable
+
 import boto3
+import os
 
-
-ENV_S3_ACCESS_KEY = foo = Variable.get("S3_ACCESS_KEY")
-ENV_S3_SECRET_KEY = foo = Variable.get("S3_SECRET_KEY")
-ENV_S3_BUCKET_NAME = foo = Variable.get("S3_BUCKET_NAME")
-ENV_S3_ENDPOINT = foo = Variable.get("S3_ENDPOINT")
-ENV_S3_REGION = foo = Variable.get("S3_REGION")
-ENV_NODE_ETHEREUM = foo = Variable.get("NODE_ETHEREUM")
+ENV_S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+ENV_S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+ENV_S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+ENV_S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+ENV_S3_REGION = os.getenv("S3_REGION")
+ENV_NODE_ETHEREUM = os.getenv("NODE_ETHEREUM")
 
 default_args = {
     'owner': 'airflow',
