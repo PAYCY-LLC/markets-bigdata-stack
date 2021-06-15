@@ -39,9 +39,14 @@
 version: '3'
 x-airflow-common:
   &airflow-common
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.1.0}
+  #image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.1.0}
+  build:
+    context: './images/airflow/'
+    dockerfile: 'Dockerfile'
+
   environment:
     &airflow-common-env
+    AIRFLOW__CORE__ENABLE_XCOM_PICKLING: 'true'
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
@@ -58,10 +63,10 @@ x-airflow-common:
     S3_ENDPOINT: ${S3_ENDPOINT}
     S3_REGION: ${S3_REGION}
 
-  command: sudo chmod 666 /var/run/docker.sock
+  #command: chmod 666 /var/run/docker.sock
 
   volumes:
-    - ${DATADIR}/dags:/opt/airflow/dags
+    - ./dags:/opt/airflow/dags
     - ${DATADIR}/logs:/opt/airflow/logs
     - ${DATADIR}/plugins:/opt/airflow/plugins
     - ${DATADIR}/etl:/opt/airflow/etl
@@ -120,6 +125,7 @@ services:
       timeout: 10s
       retries: 5
     restart: always
+
 
   airflow-worker:
     <<: *airflow-common
