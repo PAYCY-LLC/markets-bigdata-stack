@@ -3,9 +3,10 @@ from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 from airflow.operators.docker_operator import DockerOperator
 from airflow.operators.python_operator import PythonOperator
-
+from pathlib import Path
 import boto3
 import os
+import glob
 
 ENV_S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 ENV_S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
@@ -33,46 +34,50 @@ default_args = {
 
 with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *", catchup=False) as dag:
 
-    def upload_file(source, target):
+    # ----------------------------- Upload dir  -------------------------------------------
+    def upload_files(path):
 
-        session = boto3.session.Session()
-        client = session.client('s3',
-                                region_name=ENV_S3_REGION,
-                                endpoint_url=ENV_S3_ENDPOINT,
-                                aws_access_key_id=ENV_S3_ACCESS_KEY,
-                                aws_secret_access_key=ENV_S3_SECRET_KEY)
+        s3config = {
+            "region_name": ENV_S3_REGION,
+            "endpoint_url": "https://{}.digitaloceanspaces.com".format(ENV_S3_REGION),
+            "aws_access_key_id": ENV_S3_ACCESS_KEY,
+            "aws_secret_access_key": ENV_S3_SECRET_KEY }
 
-        client.upload_file(source,  # Path to local file
-                           ENV_S3_BUCKET_NAME,  # Name of Space
-                           target)  # Name for remote file
+        s3resource = boto3.resource("s3", **s3config)
+        bucket = s3resource.Bucket(ENV_S3_BUCKET_NAME)
 
-    t1 = BashOperator(
+        for subdir, dirs, files in os.walk(path):
+            for file in files:
+                print(f'subdir ------------  {subdir}')
+                full_path = os.path.join(subdir, file)
+                print(f'full_path ------------  {full_path}')
+                with open(full_path, 'rb') as data:
+                    bucket.put_object(Key=full_path[len(path):], Body=data)
+
+
+    # ----------------------------- Tasks -------------------------------------------
+
+    start_task = BashOperator(
         task_id='print_current_date',
         bash_command='date'
     )
 
-    t2 = DockerOperator(
+    etl_export = DockerOperator(
         task_id='docker_command',
         image='blockchainetl/ethereum-etl:latest',
         api_version='auto',
         auto_remove=True,
         volumes=[f'{ENV_DATADIR_EXTERNAL}/etl:/ethereum-etl/output'],
-        command=f'export_blocks_and_transactions -s 0 -e 100 --blocks-output /ethereum-etl/output/blocks.csv --transactions-output /ethereum-etl/output/transactions.csv -p {ENV_NODE_ETHEREUM}',
+        command=f'export_all -s 1000000 -e 1001000 -b 1000 -p {ENV_NODE_ETHEREUM}',
         docker_url="unix://var/run/docker.sock",
         network_mode="bridge"
     )
 
-    t3 = BashOperator(
-        task_id='print_hello',
-        bash_command='echo "hello world"'
-    )
-
     upload_to_s3 = PythonOperator(
         task_id='upload_to_s3',
-        python_callable=upload_file,
-        op_kwargs={'source': f'/opt/airflow/etl/blocks.csv',
-                   'target': 'blocks/blocks.csv'},
+        python_callable=upload_files,
+        op_kwargs={'path': f'/opt/airflow/etl/'},
         dag=dag
     )
 
-    t1 >> t2 >> t3 >> upload_to_s3
+    start_task >> etl_export >> upload_to_s3
