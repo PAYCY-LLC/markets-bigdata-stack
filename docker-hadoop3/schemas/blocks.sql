@@ -25,7 +25,7 @@ WITH SERDEPROPERTIES (
     'escape.delim' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3a://etl-data/blocks'
+LOCATION 's3a://etl-data/blocks/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );

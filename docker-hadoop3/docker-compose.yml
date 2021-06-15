@@ -6,7 +6,7 @@ services:
         container_name: hadoop-namenode
         image: timveil/docker-hadoop-namenode:3.2.x
         volumes:
-            - namenode:/hadoop/dfs/name
+            - ${DATADIR}/hadoop/namenode:/hadoop/dfs/name
         environment:
             - CLUSTER_NAME=bigdata1
         env_file:
@@ -20,7 +20,7 @@ services:
         container_name: hadoop-datanode
         image: timveil/docker-hadoop-datanode:3.2.x
         volumes:
-            - datanode:/hadoop/dfs/data
+            - ${DATADIR}/hadoop/datanode:/hadoop/dfs/data
         env_file:
             - ./config/hadoop-core.env
         environment:
@@ -95,6 +95,7 @@ services:
             S3_SECRET_KEY: ${S3_SECRET_KEY}
         volumes:
             - ./config/trino/coordinator:/opt/trino/etc
+            - ${DATADIR}/trino/data:/opt/trino/data
         networks:
             - base_net
 
@@ -109,6 +110,7 @@ services:
     #         S3_SECRET_KEY: ${S3_SECRET_KEY}
     #     volumes:
     #         - ./config/trino/worker:/opt/trino/etc
+    #         - ${DATADIR}/trino/data:/opt/trino/data
     #     networks:
     #         - base_net
 
@@ -123,7 +125,7 @@ services:
     #       MINIO_ACCESS_KEY: ${S3_ACCESS_KEY}
     #       MINIO_SECRET_KEY: ${S3_SECRET_KEY}
     #     volumes:
-    #         - minio:/data
+    #         - ${DATADIR}/minio/data:/data
     #     command: server /data
     #     networks:
     #         - base_net
@@ -131,8 +133,3 @@ services:
 networks:
     base_net:
         name: bigdatanet
-
-volumes:
-    datanode:
-    namenode:
-    minio:
