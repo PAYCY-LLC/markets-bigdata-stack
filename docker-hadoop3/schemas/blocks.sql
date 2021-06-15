@@ -18,6 +18,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS blocks (
     `timestamp` BIGINT,
     transaction_count BIGINT
 )
+PARTITIONED BY (start_block BIGINT, end_block BIGINT)
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
 WITH SERDEPROPERTIES (
     'serialization.format' = ',',
@@ -25,8 +26,9 @@ WITH SERDEPROPERTIES (
     'escape.delim' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3a://etl-data/blocks/'
+LOCATION 's3a://etl-data/blocks'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
 
+ALTER TABLE blocks ADD PARTITION (start_block, end_block) LOCALTION 's3a://etl-data/blocks';
