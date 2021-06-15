@@ -35,7 +35,6 @@ with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *",
 
     def upload_file(source, target):
 
-
         session = boto3.session.Session()
         client = session.client('s3',
                                 region_name=ENV_S3_REGION,
@@ -72,7 +71,7 @@ with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *",
         task_id='upload_to_s3',
         python_callable=upload_file,
         op_kwargs={'source': f'/opt/airflow/etl/blocks.csv',
-                   'target': 'blocks/'},
+                   'target': 'blocks/blocks.csv'},
         dag=dag
     )
 
