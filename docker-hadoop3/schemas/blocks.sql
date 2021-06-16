@@ -31,4 +31,4 @@ TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
 
-ALTER TABLE blocks ADD PARTITION (start_block, end_block) LOCALTION 's3a://etl-data/blocks';
+ALTER TABLE blocks ADD PARTITION (start_block='0', end_block='100000000') LOCATION 's3a://etl-data/blocks';
