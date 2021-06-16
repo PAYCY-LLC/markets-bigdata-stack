@@ -1,12 +1,12 @@
+import os
+import shutil
+from datetime import datetime, timedelta
+
+import boto3
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
-from datetime import datetime, timedelta
 from airflow.operators.docker_operator import DockerOperator
 from airflow.operators.python_operator import PythonOperator
-from pathlib import Path
-import boto3
-import os
-import glob
 
 ENV_S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 ENV_S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
@@ -15,11 +15,6 @@ ENV_S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 ENV_S3_REGION = os.getenv("S3_REGION")
 ENV_NODE_ETHEREUM = os.getenv("NODE_ETHEREUM")
 ENV_DATADIR_EXTERNAL = os.getenv("DATADIR_EXTERNAL")
-
-s3_conn_id = 's3-conn'
-state = 'wa'
-date = '{{ yesterday_ds_nodash }}'
-
 
 default_args = {
     'owner': 'airflow',
@@ -33,26 +28,36 @@ default_args = {
 }
 
 with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *", catchup=False) as dag:
+    s3_client = boto3.client(
+        's3',
+        region_name=ENV_S3_REGION,
+        endpoint_url=f'https://{ENV_S3_REGION}.digitaloceanspaces.com',
+        aws_access_key_id=ENV_S3_ACCESS_KEY,
+        aws_secret_access_key=ENV_S3_SECRET_KEY
+    )
+
 
     # ----------------------------- Upload dir  -------------------------------------------
-    def upload_files(path):
-
-        s3config = {
-            "region_name": ENV_S3_REGION,
-            "endpoint_url": "https://{}.digitaloceanspaces.com".format(ENV_S3_REGION),
-            "aws_access_key_id": ENV_S3_ACCESS_KEY,
-            "aws_secret_access_key": ENV_S3_SECRET_KEY }
-
-        s3resource = boto3.resource("s3", **s3config)
-        bucket = s3resource.Bucket(ENV_S3_BUCKET_NAME)
-
-        for subdir, dirs, files in os.walk(path):
+    def upload_files(path, start, end):
+        for root, dirs, files in os.walk(path):
             for file in files:
-                print(f'subdir ------------  {subdir}')
-                full_path = os.path.join(subdir, file)
-                print(f'full_path ------------  {full_path}')
-                with open(full_path, 'rb') as data:
-                    bucket.put_object(Key=full_path[len(path):], Body=data)
+                file_path = os.path.join(root, file)
+
+                with open(file_path, 'rb') as data:
+                    dir_parent = os.path.join(root, '../..')
+                    dir_current = os.path.dirname(root)
+
+                    s3_client.put_object(
+                        Bucket=ENV_S3_BUCKET_NAME,
+                        Key=file_path[len(path) + 1:],
+                        Body=data
+                    )
+                    os.remove(file_path)
+
+                    if start == dir_current[-len(start):]:
+                        shutil.rmtree(dir_parent, ignore_errors=True)
+                    if end == dir_current[-len(end):]:
+                        shutil.rmtree(dir_parent, ignore_errors=True)
 
 
     # ----------------------------- Tasks -------------------------------------------
@@ -76,7 +81,11 @@ with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *",
     upload_to_s3 = PythonOperator(
         task_id='upload_to_s3',
         python_callable=upload_files,
-        op_kwargs={'path': f'/opt/airflow/etl/'},
+        op_kwargs={
+            'path': '/opt/airflow/etl/',
+            'start': '1000000',
+            'end': '1001000'
+        },
         dag=dag
     )
 
