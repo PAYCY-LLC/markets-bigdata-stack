@@ -82,7 +82,7 @@ with DAG('docker_dag', default_args=default_args, schedule_interval="5 * * * *",
         task_id='upload_to_s3',
         python_callable=upload_files,
         op_kwargs={
-            'path': '/opt/airflow/etl/',
+            'path': '/opt/airflow/etl',
             'start': '1000000',
             'end': '1001000'
         },
