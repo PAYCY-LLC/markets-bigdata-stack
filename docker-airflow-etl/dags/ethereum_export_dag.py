@@ -85,13 +85,14 @@ with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag
                     os.remove(file_path)
 
 
-    chunk = 0
-    batch = 10_000
+    batch_from = 100
+    batch_to = 200
+    chunk = 10
 
-    for i in range(0, 1_000_000, batch):
-        chunk += batch
+    for i in range(batch_from, batch_to, chunk):
+        batch_from = i + chunk
 
-        task_export = export_all(i, chunk, batch)
-        task_upload = upload_to_s3(i, chunk)
+        task_export = export_all(i + 1, batch_from, chunk)
+        task_upload = upload_to_s3(i + 1, batch_from)
 
         task_start >> task_export >> task_upload >> task_end
