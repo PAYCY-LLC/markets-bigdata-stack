@@ -161,6 +161,8 @@ services:
       timeout: 10s
       retries: 5
     restart: always
+  etl:
+    image: blockchainetl/ethereum-etl:latest
 
 volumes:
   postgres-db-volume:
