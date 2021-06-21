@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 import boto3
 from airflow import DAG
+from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
@@ -90,9 +91,9 @@ with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag
                 shutil.rmtree(path_root_dir, ignore_errors=True)
 
 
-    batch_from = 100
-    batch_to = 200
-    chunk = 10
+    batch_from = int(Variable.get(key='eth_export_batch_from', default_var=12_000_000))
+    batch_to = int(Variable.get(key='eth_export_batch_to', default_var=12_000_100))
+    chunk = int(Variable.get(key='eth_export_chunk', default_var=10))
 
     for i in range(batch_from, batch_to, chunk):
         batch_from = i + chunk
