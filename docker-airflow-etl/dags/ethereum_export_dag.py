@@ -1,4 +1,6 @@
+import glob
 import os
+import shutil
 from datetime import datetime, timedelta
 
 import boto3
@@ -70,19 +72,22 @@ with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag
         )
 
 
-    # ----------------------------- Upload dir  -------------------------------------------
-    def upload_files(path):
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                file_path = os.path.join(root, file)
+    def upload_files(path, start, end):
+        files = glob.glob(f'{path}/*/start_block={start}/end_block={end}/*.csv')
 
-                with open(file_path, 'rb') as data:
-                    s3_client.put_object(
-                        Bucket=ENV_S3_BUCKET_NAME,
-                        Key=file_path[len(path) + 1:],
-                        Body=data
-                    )
-                    os.remove(file_path)
+        for file in files:
+            with open(file, 'rb') as data:
+                file_key = file[len(path) + 1:]
+                file_dirs = file.split('/')[:3]
+                path_root_dir = os.path.join(*file_dirs)
+
+                s3_client.put_object(
+                    Bucket=ENV_S3_BUCKET_NAME,
+                    Key=file_key,
+                    Body=data
+                )
+                os.remove(file)
+                shutil.rmtree(path_root_dir, ignore_errors=True)
 
 
     batch_from = 100
