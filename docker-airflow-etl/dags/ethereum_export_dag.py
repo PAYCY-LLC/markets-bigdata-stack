@@ -1,9 +1,9 @@
 import glob
 import os
 import shutil
-from datetime import datetime, timedelta
-
 import boto3
+
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
@@ -28,7 +28,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5)
 }
 
-with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag:
+with DAG('ethereum_export_dag', default_args=default_args, schedule_interval='@once', catchup=False) as dag:
     s3_client = boto3.client(
         's3',
         region_name=ENV_S3_REGION,
@@ -44,7 +44,8 @@ with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag
 
     task_end = DummyOperator(
         task_id='end',
-        dag=dag)
+        dag=dag
+    )
 
 
     def export_all(start, end, batch):
@@ -96,9 +97,10 @@ with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag
     chunk = int(Variable.get(key='eth_export_chunk', default_var=10))
 
     for i in range(batch_from, batch_to, chunk):
-        batch_from = i + chunk
+        start = i + 1
+        end = i + chunk
 
-        task_export = export_all(i + 1, batch_from, chunk)
-        task_upload = upload_to_s3(i + 1, batch_from)
+        task_export = export_all(start, end, chunk)
+        task_upload = upload_to_s3(start, end)
 
         task_start >> task_export >> task_upload >> task_end
