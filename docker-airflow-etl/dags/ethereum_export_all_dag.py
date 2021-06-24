@@ -9,6 +9,7 @@ from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow.utils.task_group import TaskGroup
 
 ENV_S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 ENV_S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
@@ -18,17 +19,18 @@ ENV_S3_REGION = os.getenv("S3_REGION")
 ENV_NODE_ETHEREUM = os.getenv("NODE_ETHEREUM")
 ENV_DATADIR_EXTERNAL = os.getenv("DATADIR_EXTERNAL")
 
+root_path = '/opt/airflow/etl'
 default_args = {
     'owner': 'airflow',
     'depend_on_past': False,
     'start_date': datetime(2018, 1, 3),
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 4,
-    'retry_delay': timedelta(minutes=5)
+    'retries': 8,
+    'retry_delay': timedelta(minutes=2)
 }
 
-with DAG('ethereum_export_dag', default_args=default_args, schedule_interval='@once', catchup=False) as dag:
+with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag:
     s3_client = boto3.client(
         's3',
         region_name=ENV_S3_REGION,
@@ -66,7 +68,6 @@ with DAG('ethereum_export_dag', default_args=default_args, schedule_interval='@o
             task_id=f's3_upload_from_{start}_to_{end}',
             python_callable=upload_files,
             op_kwargs={
-                'path': '/opt/airflow/etl',
                 'start': start,
                 'end': end
             },
@@ -74,33 +75,47 @@ with DAG('ethereum_export_dag', default_args=default_args, schedule_interval='@o
         )
 
 
-    def upload_files(path, start, end):
-        files = glob.glob(f'{path}/*/start_block={start}/end_block={end}/*.csv')
+    def delete_files_task():
+        return PythonOperator(
+            task_id='delete_files',
+            python_callable=delete_files,
+            dag=dag
+        )
+
+
+    def upload_files(start, end):
+        files = glob.glob(f'{root_path}/*/start_block={start}/end_block={end}/*.csv')
 
         for file in files:
             with open(file, 'rb') as data:
-                file_key = file[len(path) + 1:]
-                file_dirs = file.split('/')[:3]
-                path_root_dir = os.path.join(*file_dirs)
+                file_key = file[len(root_path) + 1:]
 
                 s3_client.put_object(
                     Bucket=ENV_S3_BUCKET_NAME,
                     Key=file_key,
                     Body=data
                 )
-                os.remove(file)
-                shutil.rmtree(path_root_dir, ignore_errors=True)
+
+
+    def delete_files():
+        dirs = os.listdir(root_path)
+        for subdir in dirs:
+            dir = os.path.join(root_path, subdir)
+            shutil.rmtree(dir, ignore_errors=True)
 
 
     batch_from = int(Variable.get(key='eth_export_batch_from', default_var=12_000_000))
     batch_to = int(Variable.get(key='eth_export_batch_to', default_var=12_000_100))
     chunk = int(Variable.get(key='eth_export_chunk', default_var=10))
 
-    for i in range(batch_from, batch_to, chunk):
-        start = i + 1
-        end = i + chunk
+    with TaskGroup(group_id=f'export_group_from_{batch_from}_to_{batch_to}') as task_group:
+        for i in range(batch_from, batch_to, chunk):
+            start = i + 1
+            end = i + chunk
 
-        task_export = export_all(start, end, chunk)
-        task_upload = upload_to_s3(start, end)
+            task_export = export_all(start, end, chunk)
+            task_upload = upload_to_s3(start, end)
 
-        task_start >> task_export >> task_upload >> task_end
+            task_export >> task_upload
+
+    task_start >> task_group >> delete_files_task() >> task_end
