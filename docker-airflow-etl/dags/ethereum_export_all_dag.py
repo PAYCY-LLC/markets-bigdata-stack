@@ -113,8 +113,11 @@ with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag
             start = i + 1
             end = i + chunk
 
-            task_export = export_all(start, end, chunk)
-            task_upload = upload_to_s3(start, end)
+            start_str = f'{start:08}'
+            end_str = f'{start:08}'
+
+            task_export = export_all(start_str, end_str, chunk)
+            task_upload = upload_to_s3(start_str, end_str)
 
             task_export >> task_upload
 
