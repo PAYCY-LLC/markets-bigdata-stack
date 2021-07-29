@@ -30,7 +30,7 @@ default_args = {
     'retry_delay': timedelta(minutes=2)
 }
 
-with DAG('ethereum_export_dag', default_args=default_args, catchup=False) as dag:
+with DAG('ethereum_export_dag', schedule_interval='@once', default_args=default_args, catchup=False) as dag:
     s3_client = boto3.client(
         's3',
         region_name=ENV_S3_REGION,
