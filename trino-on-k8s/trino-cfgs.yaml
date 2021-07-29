@@ -1,0 +1,74 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: trino-configs
+data:
+  jvm.config: |-
+    -server
+    -Xmx16G
+    -XX:-UseBiasedLocking
+    -XX:+UseG1GC
+    -XX:G1HeapRegionSize=32M
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+ExitOnOutOfMemoryError
+    -XX:+UseGCOverheadLimit
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:ReservedCodeCacheSize=512M
+    -Djdk.attach.allowAttachSelf=true
+    -Djdk.nio.maxCachedBufferSize=2000000
+  config.properties.coordinator: |-
+    coordinator=true
+    node-scheduler.include-coordinator=false
+    http-server.http.port=8080
+    query.max-memory=32GB
+    query.max-memory-per-node=8GB
+    query.max-total-memory-per-node=10GB
+    query.max-stage-count=200
+    task.writer-count=4
+    discovery-server.enabled=true
+    discovery.uri=http://trino:8080
+  config.properties.worker: |-
+    coordinator=false
+    http-server.http.port=8080
+    query.max-memory=32GB
+    query.max-memory-per-node=10GB
+    query.max-total-memory-per-node=10GB
+    query.max-stage-count=200
+    task.writer-count=4
+    discovery.uri=http://trino:8080
+  node.properties.coordinator: |-
+    node.id=coordinator_1
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_1: |-
+    node.id=worker_1
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_2: |-
+    node.id=worker_2
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  hive.properties: |-
+    connector.name=hive-hadoop2
+    hive.metastore.uri=thrift://metastore:9083
+    hive.allow-drop-table=true
+    hive.max-partitions-per-scan=1000000
+    hive.s3.endpoint=http://minio:8080
+    hive.s3.path-style-access=true
+    hive.s3.ssl.enabled=true
+    hive.s3.max-connections=100
+    hive.s3.aws-access-key=minio
+    hive.s3.aws-secret-key=minio
+    hive.recursive-directories=true
+  mysql.properties: |-
+    connector.name=mysql
+    connection-url=jdbc:mysql://metastore-db.default.svc.cluster.local:13306
+    connection-user=root
+    connection-password=mypass
