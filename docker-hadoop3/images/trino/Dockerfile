@@ -2,7 +2,7 @@ FROM openjdk:11-slim
 
 # trino version will be passed in at build time
 ARG TRINO_VERSION
-ENV TRINO_VERSION=${TRINO_VERSION:-358}
+ENV TRINO_VERSION=${TRINO_VERSION:-360}
 ENV TRINO_HOME=/opt/trino
 
 

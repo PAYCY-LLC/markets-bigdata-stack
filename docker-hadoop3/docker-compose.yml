@@ -95,24 +95,39 @@ services:
             S3_SECRET_KEY: ${S3_SECRET_KEY}
         volumes:
             - ./config/trino/coordinator:/opt/trino/etc
-            - ${DATADIR}/trino/data:/opt/trino/data
+            - ${DATADIR}/trino/data/coordinator:/opt/trino/data
         networks:
             - base_net
 
-    # trino-worker:
-    #     container_name: trino-worker
-    #     build:
-    #       context: './images/trino/'
-    #       dockerfile: 'Dockerfile'
-    #     restart: always
-    #     environment:
-    #         S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-    #         S3_SECRET_KEY: ${S3_SECRET_KEY}
-    #     volumes:
-    #         - ./config/trino/worker:/opt/trino/etc
-    #         - ${DATADIR}/trino/data:/opt/trino/data
-    #     networks:
-    #         - base_net
+    trino-worker-1:
+        container_name: trino-worker-1
+        build:
+          context: './images/trino/'
+          dockerfile: 'Dockerfile'
+        restart: always
+        environment:
+            S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+            S3_SECRET_KEY: ${S3_SECRET_KEY}
+        volumes:
+            - ./config/trino/worker:/opt/trino/etc
+            - ${DATADIR}/trino/data/worker:/opt/trino/data
+        networks:
+            - base_net
+
+    trino-worker-2:
+        container_name: trino-worker-2
+        build:
+          context: './images/trino/'
+          dockerfile: 'Dockerfile'
+        restart: always
+        environment:
+            S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+            S3_SECRET_KEY: ${S3_SECRET_KEY}
+        volumes:
+            - ./config/trino/worker:/opt/trino/etc
+            - ${DATADIR}/trino/data/worker2:/opt/trino/data
+        networks:
+            - base_net
 
     #  ------- Minio ----------------
     # minio:
