@@ -15,9 +15,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     end_block VARCHAR
 )
 WITH (
-  external_location = 's3a://etl-data/transactions/',
-  format = 'TEXTFILE',
-  textfile_field_separator = ',',
-  skip_header_line_count = 1,
+  external_location = 's3a://etl-data-pqt/transactions/',
+  format = 'parquet',
   partitioned_by = ARRAY['start_block', 'end_block']
 );

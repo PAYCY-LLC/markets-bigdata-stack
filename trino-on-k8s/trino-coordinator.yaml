@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trino
+spec:
+  ports:
+  - port: 8080
+  selector:
+    app: trino-coordinator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-coordinator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino-coordinator
+  template:
+    metadata:
+      labels:
+        app: trino-coordinator
+    spec:
+      containers:
+      - name: trino
+        image: trinodb/trino:360
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/jvm.config
+          subPath: jvm.config
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/config.properties
+          subPath: config.properties.coordinator
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/node.properties
+          subPath: node.properties.coordinator
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/catalog/hive.properties
+          subPath: hive.properties
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/catalog/mysql.properties
+          subPath: mysql.properties
+        resources:
+          requests:
+            memory: "2G"
+            cpu: "1"
+          limits:
+            memory: "5G"
+            cpu: "2"
+        imagePullPolicy: Always
+      volumes:
+        - name: trino-cfg-vol
+          configMap:
+            name: trino-configs
+        - name: trino-cert
+          configMap:
+            name: trino-cert

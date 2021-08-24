@@ -27,21 +27,13 @@
         <name>metastore.thrift.port</name>
         <value>9083</value>
     </property>
-        <property>
-        <name>fs.s3a.access.key</name>
-        <value>minio</value>
-    </property>
-    <property>
-        <name>fs.s3a.secret.key</name>
-        <value>minio</value>
-    </property>
     <property>
         <name>fs.s3a.impl</name>
         <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
     </property>
     <property>
         <name>fs.s3a.endpoint</name>
-        <value>https://minio:8080</value>
+        <value>https://nyc3.digitaloceanspaces.com</value>
     </property>
     <property>
         <name>fs.s3a.path.style.access</name>

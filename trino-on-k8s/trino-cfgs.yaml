@@ -25,8 +25,7 @@ data:
     query.max-memory-per-node=8GB
     query.max-total-memory-per-node=10GB
     query.max-stage-count=200
-    task.writer-count=4
-    discovery-server.enabled=true
+    task.writer-count=1
     discovery.uri=http://trino:8080
   config.properties.worker: |-
     coordinator=false
@@ -35,7 +34,7 @@ data:
     query.max-memory-per-node=10GB
     query.max-total-memory-per-node=10GB
     query.max-stage-count=200
-    task.writer-count=4
+    task.writer-count=1
     discovery.uri=http://trino:8080
   node.properties.coordinator: |-
     node.id=coordinator_1
@@ -55,18 +54,76 @@ data:
     spiller-spill-path=/tmp
     max-spill-per-node=4TB
     query-max-spill-per-node=1TB
+  node.properties.worker_3: |-
+    node.id=worker_3
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_4: |-
+    node.id=worker_4
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_5: |-
+    node.id=worker_5
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_6: |-
+    node.id=worker_6
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_7: |-
+    node.id=worker_7
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_8: |-
+    node.id=worker_8
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_9: |-
+    node.id=worker_9
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
+  node.properties.worker_10: |-
+    node.id=worker_10
+    node.environment=production
+    spiller-spill-path=/tmp
+    max-spill-per-node=4TB
+    query-max-spill-per-node=1TB
   hive.properties: |-
     connector.name=hive-hadoop2
     hive.metastore.uri=thrift://metastore:9083
+    hive.metastore-timeout=5m
     hive.allow-drop-table=true
     hive.max-partitions-per-scan=1000000
-    hive.s3.endpoint=http://minio:8080
+    hive.s3.endpoint=https://nyc3.digitaloceanspaces.com
     hive.s3.path-style-access=true
     hive.s3.ssl.enabled=true
     hive.s3.max-connections=100
-    hive.s3.aws-access-key=minio
-    hive.s3.aws-secret-key=minio
+    hive.s3.aws-access-key=ACCESS_KEY
+    hive.s3.aws-secret-key=ACCESS_SECRET
+    hive.s3.streaming.part-size=256MB
     hive.recursive-directories=true
+    hive.allow-drop-table=true
+    hive.allow-rename-table=true
+    hive.allow-add-column=true
+    hive.allow-drop-column=true
+    hive.allow-rename-column=true
+    hive.non-managed-table-writes-enabled=true
+    hive.non-managed-table-creates-enabled=true
+    hive.max-partitions-per-writers=400
   mysql.properties: |-
     connector.name=mysql
     connection-url=jdbc:mysql://metastore-db.default.svc.cluster.local:13306

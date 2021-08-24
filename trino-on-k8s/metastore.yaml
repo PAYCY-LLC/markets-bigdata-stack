@@ -46,6 +46,13 @@ spec:
           subPath: metastore-site.xml
         command: ["/opt/hive-metastore/bin/start-metastore"]
         args: ["-p", "9083"]
+        resources:
+          requests:
+            memory: "2G"
+            cpu: "1"
+          limits:
+            memory: "5G"
+            cpu: "2"
         imagePullPolicy: Always
       volumes:
         - name: metastore-cfg-vol

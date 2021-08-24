@@ -9,9 +9,7 @@ CREATE TABLE IF NOT EXISTS tokens (
     end_block VARCHAR
 )
 WITH (
-  external_location = 's3a://etl-data/tokens/',
-  format = 'TEXTFILE',
-  textfile_field_separator = ',',
-  skip_header_line_count = 1,
+  external_location = 's3a://etl-data-pqt/tokens/',
+  format = 'parquet',
   partitioned_by = ARRAY['start_block', 'end_block']
 );

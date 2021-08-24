@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: trino-worker-1
+spec:
+  serviceName: trino-worker-1
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino-worker-1
+  template:
+    metadata:
+      labels:
+        app: trino-worker-1
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: trino
+        image: trinodb/trino:360
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/jvm.config
+          subPath: jvm.config
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/config.properties
+          subPath: config.properties.worker
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/node.properties
+          subPath: node.properties.worker_1
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/catalog/hive.properties
+          subPath: hive.properties
+        - name: trino-cfg-vol
+          mountPath: /etc/trino/catalog/mysql.properties
+          subPath: mysql.properties
+        - name: trino-tmp-data
+          mountPath: /tmpx
+        resources:
+          requests:
+            memory: "6G"
+            cpu: "2"
+          limits:
+            memory: "25G"
+            cpu: "4"
+        imagePullPolicy: Always
+      volumes:
+        - name: trino-cfg-vol
+          configMap:
+            name: trino-configs
+  volumeClaimTemplates:
+  - metadata:
+      name: trino-tmp-data
+    spec:
+      storageClassName: do-block-storage
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Ti
